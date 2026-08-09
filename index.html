@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Minimal Vector HUD</title>
 
-  <!-- iOS Safari WebApp Integration für echtes Vollbild -->
+  <!-- iOS Safari WebApp Integration -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="HUD">
@@ -42,18 +42,20 @@
       color: var(--accent-color);
       font-family: 'DS-Digital', 'Orbitron', monospace, sans-serif;
       overflow: hidden;
-      height: 100%;
-      width: 100%;
-      position: fixed; /* Verhindert das lästige iOS-Bounce-Scrolling */
+      width: 100vw;
+      height: 100svh;
+      position: fixed;
+      top: 0;
+      left: 0;
     }
 
-    /* Start Overlay für expliziten Nutzer-Klick (Audio/GPS Berechtigung) */
+    /* Start Overlay */
     #start-overlay {
       position: fixed;
       top: 0;
       left: 0;
       width: 100vw;
-      height: 100vh;
+      height: 100svh;
       background-color: #000000;
       z-index: 99999;
       display: flex;
@@ -87,9 +89,11 @@
       font-size: 0.75rem;
       color: #888;
       letter-spacing: 1px;
+      text-align: center;
+      padding: 0 20px;
     }
 
-    /* Haupt-Container für HUD-Spiegelung (Standardmäßig gespiegelt für die Windschutzscheibe!) */
+    /* Haupt-Container für HUD-Spiegelung */
     #app-container {
       width: 100%;
       height: 100%;
@@ -103,14 +107,14 @@
       transform: scaleY(1) !important;
     }
 
-    /* Echte Vektorkarte im Hintergrund mit Safe-Area Berücksichtigung */
+    /* Echte Vektorkarte mit absolut schwarzem Hintergrund */
     #map {
       width: 100%;
       height: 100%;
       position: absolute;
       top: 0;
       left: 0;
-      background-color: #000000;
+      background-color: #000000 !important;
     }
 
     /* Dynamische Radar-Blende */
@@ -122,11 +126,10 @@
       height: 100%;
       pointer-events: none;
       z-index: 5;
-      transition: mask-image 0.5s ease, -webkit-mask-image 0.5s ease;
       background: radial-gradient(circle at 50% 50%, rgba(0,0,0,0) var(--radar-radius), rgba(0,0,0,0.98) calc(var(--radar-radius) + 80px), #000000 100%);
     }
 
-    /* Overlay Canvas für DNA-Animation oben rechts */
+    /* Overlay Canvas für DNA-Helix */
     #overlayCanvas {
       width: 100%;
       height: 100%;
@@ -137,11 +140,11 @@
       z-index: 10;
     }
 
-    /* Oben Links: Digitales Tempolimit (angepasst an iPhone X Notch) */
+    /* Oben Links: Tempolimit */
     #limit-display {
       position: absolute;
-      top: max(15px, env(safe-area-inset-top));
-      left: max(35px, env(safe-area-inset-left));
+      top: max(25px, env(safe-area-inset-top));
+      left: max(40px, env(safe-area-inset-left));
       z-index: 20;
       pointer-events: none;
       display: flex;
@@ -159,10 +162,10 @@
       text-shadow: 0 0 25px var(--accent-glow);
     }
 
-    /* Unten Mitte: Digitale Geschwindigkeit (Perfekt zentriert über iPhone Home-Indicator) */
+    /* Unten Mitte: Geschwindigkeit */
     #speed-display {
       position: absolute;
-      bottom: max(15px, env(safe-area-inset-bottom));
+      bottom: max(20px, env(safe-area-inset-bottom));
       left: 50%;
       transform: translateX(-50%);
       z-index: 20;
@@ -184,8 +187,8 @@
     /* Unten Links: Aktuelle Adresse / GPS Status */
     #address-display {
       position: absolute;
-      bottom: max(20px, env(safe-area-inset-bottom));
-      left: max(35px, env(safe-area-inset-left));
+      bottom: max(25px, env(safe-area-inset-bottom));
+      left: max(40px, env(safe-area-inset-left));
       z-index: 20;
       pointer-events: none;
       display: flex;
@@ -219,8 +222,8 @@
     /* Controls Unten Rechts */
     #controls {
       position: absolute;
-      bottom: max(20px, env(safe-area-inset-bottom));
-      right: max(35px, env(safe-area-inset-right));
+      bottom: max(25px, env(safe-area-inset-bottom));
+      right: max(40px, env(safe-area-inset-right));
       z-index: 30;
       display: flex;
       gap: 8px;
@@ -259,47 +262,37 @@
 </head>
 <body>
 
-  <!-- Start Overlay für iOS Berechtigungen -->
+  <!-- Start Overlay -->
   <div id="start-overlay">
     <button class="start-btn" onclick="startHUDWithClick()">START HUD</button>
-    <div class="hint-text">TIPP: Safari-Menü -> "Zum Home-Bildschirm" für Vollbild</div>
+    <div class="hint-text">TIPP FÜR IOS 17: Über das Teilen-Menü "Zum Home-Bildschirm" hinzufügen für echtes Vollbild!</div>
   </div>
 
   <div id="app-container">
-    <!-- Echte Vektorkarte -->
     <div id="map"></div>
-
-    <!-- Dynamischer Radar-Radius -->
     <div id="radar-mask" style="--radar-radius: 80px;"></div>
-
-    <!-- Overlay Canvas für DNA-Helix -->
     <canvas id="overlayCanvas"></canvas>
 
-    <!-- Oben Links: Tempolimit -->
     <div id="limit-display">
       <span id="speed-limit" class="limit-value">--</span>
     </div>
 
-    <!-- Controls Unten Rechts -->
     <div id="controls">
       <button class="ctrl-btn" onclick="forceLocationReload()">GPS</button>
       <button class="ctrl-btn" onclick="toggleDayNightManual()">MODE</button>
       <button class="ctrl-btn" id="hud-btn" onclick="toggleHUD()">HUD</button>
     </div>
 
-    <!-- Unten Links: Live-Adresse & GPS Status -->
     <div id="address-display">
       <div id="status-dot"></div>
       <span id="address-label" class="address-text">SUCHE POSITION...</span>
     </div>
 
-    <!-- Unten Mitte: Geschwindigkeit -->
     <div id="speed-display">
       <span id="speed" class="speed-value">0</span>
     </div>
   </div>
 
-  <!-- MapLibre GL JS -->
   <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
 
   <script>
@@ -368,7 +361,8 @@
       map.on('style.load', () => {
         const layers = map.getStyle().layers;
         layers.forEach(layer => {
-          if (layer.type === 'symbol' || layer.id.includes('building') || layer.id.includes('poi') || layer.id.includes('landuse') || layer.id.includes('water') || layer.id.includes('park') || layer.id.includes('background')) {
+          // Alles was Hintergrund, Gebäude oder POI ist komplett unsichtbar machen
+          if (layer.type === 'symbol' || layer.id.includes('building') || layer.id.includes('poi') || layer.id.includes('landuse') || layer.id.includes('water') || layer.id.includes('park') || layer.id.includes('background') || layer.id.includes('earth') || layer.id.includes('fill')) {
             try {
               map.setLayoutProperty(layer.id, 'visibility', 'none');
             } catch(e) {}
@@ -391,6 +385,7 @@
       });
     }
 
+    // Erzwingt, dass alle Linien-Layer (Straßen) knallrot bzw. weiß eingefärbt werden
     function updateMapThemeColors() {
       if (!map || !map.isStyleLoaded()) return;
       const themeColor = themes[currentMode].hex;
@@ -400,7 +395,7 @@
         if (layer.type === 'line' && !layer.id.includes('admin') && !layer.id.includes('boundary')) {
           try {
             map.setPaintProperty(layer.id, 'line-color', themeColor);
-            map.setPaintProperty(layer.id, 'line-opacity', 0.95);
+            map.setPaintProperty(layer.id, 'line-opacity', 1.0);
           } catch (e) {}
         }
       });
@@ -564,6 +559,10 @@
       document.getElementById('start-overlay').style.display = 'none';
       forceLocationReload();
       requestAnimationFrame(drawRetroDNAVisualizer);
+      
+      if (document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      }
     }
 
     function forceLocationReload() {
@@ -579,7 +578,6 @@
             map.jumpTo({ center: [currentLng, currentLat], zoom: 17.5 });
             fetchSpeedLimit(currentLat, currentLng);
 
-            document.getElementById('status-dir').style = '#00ffcc';
             document.getElementById('status-dot').style.backgroundColor = '#00ffcc';
             document.getElementById('status-dot').style.boxShadow = '0 0 10px rgba(0, 255, 204, 0.8)';
           },
