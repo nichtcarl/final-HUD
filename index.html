@@ -107,7 +107,7 @@
       transform: scaleY(1) !important;
     }
 
-    /* Echte Vektorkarte mit absolut schwarzem Hintergrund */
+    /* Echte Vektorkarte */
     #map {
       width: 100%;
       height: 100%;
@@ -265,7 +265,7 @@
   <!-- Start Overlay -->
   <div id="start-overlay">
     <button class="start-btn" onclick="startHUDWithClick()">START HUD</button>
-    <div class="hint-text">TIPP FÜR IOS 17: Über das Teilen-Menü "Zum Home-Bildschirm" hinzufügen für echtes Vollbild!</div>
+    <div class="hint-text">WICHTIG: Über Safari "Zum Home-Bildschirm" hinzufügen für echtes Vollbild unter iOS 17!</div>
   </div>
 
   <div id="app-container">
@@ -349,26 +349,58 @@
     }
 
     function initMap() {
+      const activeColor = themes[currentMode].hex;
+
+      // Direktes, maßgeschneidertes MapLibre-Vektor-Stylesheet für iOS 17 Kompatibilität
+      const customStyle = {
+        "version": 8,
+        "name": "HUD Pure Black",
+        "sources": {
+          "openmaptiles": {
+            "type": "vector",
+            "url": "https://tiles.openfreemap.org/planet"
+          }
+        },
+        "layers": [
+          {
+            "id": "background",
+            "type": "background",
+            "paint": { "background-color": "#000000" }
+          },
+          {
+            "id": "road_minor",
+            "type": "line",
+            "source": "openmaptiles",
+            "source-layer": "transportation",
+            "filter": ["in", "class", "minor", "service", "track", "path"],
+            "paint": {
+              "line-color": activeColor,
+              "line-width": 2.5,
+              "line-opacity": 0.9
+            }
+          },
+          {
+            "id": "road_major",
+            "type": "line",
+            "source": "openmaptiles",
+            "source-layer": "transportation",
+            "filter": ["in", "class", "primary", "secondary", "tertiary", "trunk", "motorway", "street"],
+            "paint": {
+              "line-color": activeColor,
+              "line-width": 4,
+              "line-opacity": 1.0
+            }
+          }
+        ]
+      };
+
       map = new maplibregl.Map({
         container: 'map',
-        style: 'https://tiles.openfreemap.org/styles/dark',
+        style: customStyle,
         center: [currentLng, currentLat],
         zoom: 17.5,
         pitch: 0,
         bearing: 0
-      });
-
-      map.on('style.load', () => {
-        const layers = map.getStyle().layers;
-        layers.forEach(layer => {
-          // Alles was Hintergrund, Gebäude oder POI ist komplett unsichtbar machen
-          if (layer.type === 'symbol' || layer.id.includes('building') || layer.id.includes('poi') || layer.id.includes('landuse') || layer.id.includes('water') || layer.id.includes('park') || layer.id.includes('background') || layer.id.includes('earth') || layer.id.includes('fill')) {
-            try {
-              map.setLayoutProperty(layer.id, 'visibility', 'none');
-            } catch(e) {}
-          }
-        });
-        updateMapThemeColors();
       });
 
       map.on('load', () => {
@@ -383,27 +415,6 @@
           .setLngLat([currentLng, currentLat])
           .addTo(map);
       });
-    }
-
-    // Erzwingt, dass alle Linien-Layer (Straßen) knallrot bzw. weiß eingefärbt werden
-    function updateMapThemeColors() {
-      if (!map || !map.isStyleLoaded()) return;
-      const themeColor = themes[currentMode].hex;
-      const layers = map.getStyle().layers;
-
-      layers.forEach(layer => {
-        if (layer.type === 'line' && !layer.id.includes('admin') && !layer.id.includes('boundary')) {
-          try {
-            map.setPaintProperty(layer.id, 'line-color', themeColor);
-            map.setPaintProperty(layer.id, 'line-opacity', 1.0);
-          } catch (e) {}
-        }
-      });
-
-      const arrowPoly = document.querySelector('#user-arrow polygon');
-      if (arrowPoly) {
-        arrowPoly.setAttribute('fill', themes[currentMode].arrow);
-      }
     }
 
     async function fetchAddressLabel(lat, lng) {
@@ -599,8 +610,8 @@
             handleSpeedingFlashing(speedLimit && kmh > speedLimit);
 
             currentMode = autoDetectNightMode(currentLat, currentLng);
-            applyTheme(currentMode);
-
+            
+            // Falls sich der Tag-/Nachtmodus ändert, neu laden für das saubere Vektor-Styling
             updateCameraAndRadar(kmh, [currentLng, currentLat], heading);
             fetchSpeedLimit(currentLat, currentLng);
           },
@@ -611,15 +622,21 @@
     }
 
     function applyTheme(mode) {
+      currentMode = mode;
       const theme = themes[mode];
       document.documentElement.style.setProperty('--accent-color', theme.hex);
       document.documentElement.style.setProperty('--accent-glow', theme.glow);
-      updateMapThemeColors();
+      
+      // Neu initialisieren, damit das iOS 17 WebKit sofort die sauberen Neon-Linien anwendet
+      if (map) {
+        map.remove();
+      }
+      initMap();
     }
 
     function toggleDayNightManual() {
-      currentMode = (currentMode === 'night') ? 'day' : 'night';
-      applyTheme(currentMode);
+      const newMode = (currentMode === 'night') ? 'day' : 'night';
+      applyTheme(newMode);
     }
 
     function toggleHUD() {
@@ -628,9 +645,8 @@
     }
 
     window.onload = () => {
-      initMap();
       currentMode = autoDetectNightMode(currentLat, currentLng);
-      applyTheme(currentMode);
+      initMap();
     };
   </script>
 </body>
