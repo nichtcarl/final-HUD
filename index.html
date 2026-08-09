@@ -50,13 +50,14 @@
       left: 0;
     }
 
-    /* Start Overlay */
+    /* Start Overlay - gedreht im Querformat */
     #start-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100svh;
+      position: absolute;
+      width: 100svh;
+      height: 100vw;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(90deg);
       background-color: #000000;
       z-index: 99999;
       display: flex;
@@ -266,7 +267,7 @@
 </head>
 <body>
 
-  <!-- Start Overlay -->
+  <!-- Start Overlay (gedreht) -->
   <div id="start-overlay">
     <button class="start-btn" onclick="startHUDWithClick()">START HUD</button>
     <div class="hint-text">WICHTIG: Über Safari "Zum Home-Bildschirm" hinzufügen für echtes Vollbild unter iOS!</div>
@@ -514,7 +515,7 @@
       }
     }
 
-    // Deutlich breitere und markantere DNA-Spule für eine perfekte Reflektion
+    // Schlankere, harmonischere DNA-Spule (nicht mehr so zusammengepresst)
     function drawRetroDNAVisualizer() {
       ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
 
@@ -522,10 +523,10 @@
       const h = overlayCanvas.height;
       const accent = themes[currentMode].hex;
 
-      const dnaWidth = Math.min(360, w * 0.38); // Breiter ausgelegt
-      const dnaHeight = 75;                     // Mehr Höhe für sattes Volumen
-      const marginRight = Math.max(30, w * 0.03);
-      const marginTop = Math.max(25, h * 0.06);
+      const dnaWidth = Math.min(220, w * 0.22); // Schmaler gehalten
+      const dnaHeight = 50;                     // Angenehme Höhe
+      const marginRight = Math.max(35, w * 0.04);
+      const marginTop = Math.max(30, h * 0.07);
 
       const startX = w - dnaWidth - marginRight;
       const startY = marginTop;
@@ -537,20 +538,20 @@
       ctx.strokeStyle = accent;
       ctx.fillStyle = accent;
       ctx.shadowColor = accent;
-      ctx.shadowBlur = 22;
-      ctx.lineWidth = 4; // Dickere Linien
+      ctx.shadowBlur = 18;
+      ctx.lineWidth = 2.5;
 
-      const numPoints = 18;
+      const numPoints = 12; // Weniger Punkte, damit es luftig und organisch wirkt
       const spacing = dnaWidth / numPoints;
 
       for (let i = 0; i < numPoints; i++) {
         const x = startX + (i * spacing);
-        const angle = dnaTimer + (i * 0.38);
+        const angle = dnaTimer + (i * 0.55); // Weiterer Abstand zwischen den Wellen
 
         const y1 = startY + Math.sin(angle) * (dnaHeight / 2);
         const y2 = startY - Math.sin(angle) * (dnaHeight / 2);
 
-        ctx.globalAlpha = 0.45;
+        ctx.globalAlpha = 0.4;
         ctx.beginPath();
         ctx.moveTo(x, y1);
         ctx.lineTo(x, y2);
@@ -558,11 +559,11 @@
 
         ctx.globalAlpha = 1.0;
         ctx.beginPath();
-        ctx.arc(x, y1, 5.5, 0, Math.PI * 2);
+        ctx.arc(x, y1, 4, 0, Math.PI * 2);
         ctx.fill();
 
         ctx.beginPath();
-        ctx.arc(x, y2, 5.5, 0, Math.PI * 2);
+        ctx.arc(x, y2, 4, 0, Math.PI * 2);
         ctx.fill();
       }
       ctx.restore();
