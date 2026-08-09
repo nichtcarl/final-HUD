@@ -26,6 +26,7 @@
       --bg-color: #000000;
       --speed-color: #ffffff;
       --speed-glow: rgba(255, 255, 255, 0.9);
+      --radar-radius: 90px;
     }
 
     * {
@@ -93,18 +94,20 @@
       padding: 0 20px;
     }
 
-    /* Haupt-Container für HUD-Spiegelung */
+    /* Haupt-Container bleibt im Hochformat, Inhalt wird um 90 Grad gedreht */
     #app-container {
-      width: 100%;
-      height: 100%;
-      position: relative;
+      width: 100svh;
+      height: 100vw;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(90deg) scaleY(-1);
       transition: transform 0.3s ease-in-out;
-      transform: scaleY(-1);
       background-color: #000000;
     }
 
     .hud-mode-disabled {
-      transform: scaleY(1) !important;
+      transform: translate(-50%, -50%) rotate(90deg) scaleY(1) !important;
     }
 
     /* Echte Vektorkarte */
@@ -115,6 +118,7 @@
       top: 0;
       left: 0;
       background-color: #000000 !important;
+      z-index: 1;
     }
 
     /* Dynamische Radar-Blende */
@@ -125,8 +129,8 @@
       width: 100%;
       height: 100%;
       pointer-events: none;
-      z-index: 5;
-      background: radial-gradient(circle at 50% 50%, rgba(0,0,0,0) var(--radar-radius), rgba(0,0,0,0.98) calc(var(--radar-radius) + 80px), #000000 100%);
+      z-index: 15;
+      background: radial-gradient(circle at 50% 50%, rgba(0,0,0,0) var(--radar-radius), rgba(0,0,0,0.98) calc(var(--radar-radius) + 70px), #000000 100%);
     }
 
     /* Overlay Canvas für DNA-Helix */
@@ -137,7 +141,7 @@
       top: 0;
       left: 0;
       pointer-events: none;
-      z-index: 10;
+      z-index: 20;
     }
 
     /* Oben Links: Tempolimit */
@@ -145,7 +149,7 @@
       position: absolute;
       top: max(25px, env(safe-area-inset-top));
       left: max(40px, env(safe-area-inset-left));
-      z-index: 20;
+      z-index: 25;
       pointer-events: none;
       display: flex;
       flex-direction: column;
@@ -168,7 +172,7 @@
       bottom: max(20px, env(safe-area-inset-bottom));
       left: 50%;
       transform: translateX(-50%);
-      z-index: 20;
+      z-index: 25;
       pointer-events: none;
     }
 
@@ -189,7 +193,7 @@
       position: absolute;
       bottom: max(25px, env(safe-area-inset-bottom));
       left: max(40px, env(safe-area-inset-left));
-      z-index: 20;
+      z-index: 25;
       pointer-events: none;
       display: flex;
       align-items: center;
@@ -265,12 +269,12 @@
   <!-- Start Overlay -->
   <div id="start-overlay">
     <button class="start-btn" onclick="startHUDWithClick()">START HUD</button>
-    <div class="hint-text">WICHTIG: Über Safari "Zum Home-Bildschirm" hinzufügen für echtes Vollbild unter iOS 17!</div>
+    <div class="hint-text">WICHTIG: Über Safari "Zum Home-Bildschirm" hinzufügen für echtes Vollbild unter iOS!</div>
   </div>
 
   <div id="app-container">
     <div id="map"></div>
-    <div id="radar-mask" style="--radar-radius: 80px;"></div>
+    <div id="radar-mask"></div>
     <canvas id="overlayCanvas"></canvas>
 
     <div id="limit-display">
@@ -351,7 +355,6 @@
     function initMap() {
       const activeColor = themes[currentMode].hex;
 
-      // Direktes, maßgeschneidertes MapLibre-Vektor-Stylesheet für iOS 17 Kompatibilität
       const customStyle = {
         "version": 8,
         "name": "HUD Pure Black",
@@ -481,8 +484,8 @@
         arrow.style.transform = `rotate(0deg)`;
       }
 
-      const radarRadiusPx = Math.min(window.innerWidth * 0.65, 75 + (kmh * 4.0));
-      document.getElementById('radar-mask').style.setProperty('--radar-radius', `${radarRadiusPx}px`);
+      const radarRadiusPx = Math.min(window.innerWidth * 0.65, 75 + (kmh * 4.5));
+      document.documentElement.style.setProperty('--radar-radius', `${radarRadiusPx}px`);
     }
 
     function handleSpeedingFlashing(speeding) {
@@ -511,6 +514,7 @@
       }
     }
 
+    // Deutlich breitere und markantere DNA-Spule für eine perfekte Reflektion
     function drawRetroDNAVisualizer() {
       ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
 
@@ -518,10 +522,10 @@
       const h = overlayCanvas.height;
       const accent = themes[currentMode].hex;
 
-      const dnaWidth = Math.min(260, w * 0.25);
-      const dnaHeight = 55;
-      const marginRight = Math.max(35, w * 0.04);
-      const marginTop = Math.max(30, h * 0.07);
+      const dnaWidth = Math.min(360, w * 0.38); // Breiter ausgelegt
+      const dnaHeight = 75;                     // Mehr Höhe für sattes Volumen
+      const marginRight = Math.max(30, w * 0.03);
+      const marginTop = Math.max(25, h * 0.06);
 
       const startX = w - dnaWidth - marginRight;
       const startY = marginTop;
@@ -533,20 +537,20 @@
       ctx.strokeStyle = accent;
       ctx.fillStyle = accent;
       ctx.shadowColor = accent;
-      ctx.shadowBlur = 18;
-      ctx.lineWidth = 3;
+      ctx.shadowBlur = 22;
+      ctx.lineWidth = 4; // Dickere Linien
 
-      const numPoints = 16;
+      const numPoints = 18;
       const spacing = dnaWidth / numPoints;
 
       for (let i = 0; i < numPoints; i++) {
         const x = startX + (i * spacing);
-        const angle = dnaTimer + (i * 0.4);
+        const angle = dnaTimer + (i * 0.38);
 
         const y1 = startY + Math.sin(angle) * (dnaHeight / 2);
         const y2 = startY - Math.sin(angle) * (dnaHeight / 2);
 
-        ctx.globalAlpha = 0.4;
+        ctx.globalAlpha = 0.45;
         ctx.beginPath();
         ctx.moveTo(x, y1);
         ctx.lineTo(x, y2);
@@ -554,11 +558,11 @@
 
         ctx.globalAlpha = 1.0;
         ctx.beginPath();
-        ctx.arc(x, y1, 4.5, 0, Math.PI * 2);
+        ctx.arc(x, y1, 5.5, 0, Math.PI * 2);
         ctx.fill();
 
         ctx.beginPath();
-        ctx.arc(x, y2, 4.5, 0, Math.PI * 2);
+        ctx.arc(x, y2, 5.5, 0, Math.PI * 2);
         ctx.fill();
       }
       ctx.restore();
@@ -611,7 +615,6 @@
 
             currentMode = autoDetectNightMode(currentLat, currentLng);
             
-            // Falls sich der Tag-/Nachtmodus ändert, neu laden für das saubere Vektor-Styling
             updateCameraAndRadar(kmh, [currentLng, currentLat], heading);
             fetchSpeedLimit(currentLat, currentLng);
           },
@@ -627,7 +630,6 @@
       document.documentElement.style.setProperty('--accent-color', theme.hex);
       document.documentElement.style.setProperty('--accent-glow', theme.glow);
       
-      // Neu initialisieren, damit das iOS 17 WebKit sofort die sauberen Neon-Linien anwendet
       if (map) {
         map.remove();
       }
