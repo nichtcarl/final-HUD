@@ -50,14 +50,14 @@
       left: 0;
     }
 
-    /* Start Overlay - gedreht im Querformat */
+    /* Start Overlay - gedreht im Querformat UND gespiegelt für die Windschutzscheibe */
     #start-overlay {
       position: absolute;
       width: 100svh;
       height: 100vw;
       top: 50%;
       left: 50%;
-      transform: translate(-50%, -50%) rotate(90deg);
+      transform: translate(-50%, -50%) rotate(90deg) scaleY(-1);
       background-color: #000000;
       z-index: 99999;
       display: flex;
@@ -95,7 +95,7 @@
       padding: 0 20px;
     }
 
-    /* Haupt-Container bleibt im Hochformat, Inhalt wird um 90 Grad gedreht */
+    /* Haupt-Container bleibt im Hochformat, Inhalt wird um 90 Grad gedreht & gespiegelt */
     #app-container {
       width: 100svh;
       height: 100vw;
@@ -267,7 +267,7 @@
 </head>
 <body>
 
-  <!-- Start Overlay (gedreht) -->
+  <!-- Start Overlay (gedreht & gespiegelt) -->
   <div id="start-overlay">
     <button class="start-btn" onclick="startHUDWithClick()">START HUD</button>
     <div class="hint-text">WICHTIG: Über Safari "Zum Home-Bildschirm" hinzufügen für echtes Vollbild unter iOS!</div>
@@ -515,7 +515,7 @@
       }
     }
 
-    // Schlankere, harmonischere DNA-Spule (nicht mehr so zusammengepresst)
+    // DNA-Spule mit exaktem 3:1 Verhältnis (kompakter und ausgewogener in der Höhe)
     function drawRetroDNAVisualizer() {
       ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
 
@@ -523,10 +523,10 @@
       const h = overlayCanvas.height;
       const accent = themes[currentMode].hex;
 
-      const dnaWidth = Math.min(220, w * 0.22); // Schmaler gehalten
-      const dnaHeight = 50;                     // Angenehme Höhe
-      const marginRight = Math.max(35, w * 0.04);
-      const marginTop = Math.max(30, h * 0.07);
+      const dnaWidth = Math.min(180, w * 0.18); // Schmaler (ca. 3:1 Verhältnis)
+      const dnaHeight = 60;                     // Mehr Höhe für harmonische Proportionen
+      const marginRight = Math.max(40, w * 0.05);
+      const marginTop = Math.max(35, h * 0.08);
 
       const startX = w - dnaWidth - marginRight;
       const startY = marginTop;
@@ -541,12 +541,12 @@
       ctx.shadowBlur = 18;
       ctx.lineWidth = 2.5;
 
-      const numPoints = 12; // Weniger Punkte, damit es luftig und organisch wirkt
+      const numPoints = 10; // Weniger Punkte für sauberen, klaren Helix-Look
       const spacing = dnaWidth / numPoints;
 
       for (let i = 0; i < numPoints; i++) {
         const x = startX + (i * spacing);
-        const angle = dnaTimer + (i * 0.55); // Weiterer Abstand zwischen den Wellen
+        const angle = dnaTimer + (i * 0.6);
 
         const y1 = startY + Math.sin(angle) * (dnaHeight / 2);
         const y2 = startY - Math.sin(angle) * (dnaHeight / 2);
@@ -619,7 +619,7 @@
             updateCameraAndRadar(kmh, [currentLng, currentLat], heading);
             fetchSpeedLimit(currentLat, currentLng);
           },
-          (err) => {},
+            (err) => {},
           { enableHighAccuracy: true, maximumAge: 1000, timeout: 10000 }
         );
       }
