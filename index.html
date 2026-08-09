@@ -149,7 +149,7 @@
     #limit-display {
       position: absolute;
       top: max(25px, env(safe-area-inset-top));
-      left: max(60px, env(safe-area-inset-left));
+      left: max(40px, env(safe-area-inset-left));
       z-index: 25;
       pointer-events: none;
       display: flex;
@@ -193,7 +193,7 @@
     #address-display {
       position: absolute;
       bottom: max(25px, env(safe-area-inset-bottom));
-      left: max(60px, env(safe-area-inset-left));
+      left: max(40px, env(safe-area-inset-left));
       z-index: 25;
       pointer-events: none;
       display: flex;
@@ -228,7 +228,7 @@
     #controls {
       position: absolute;
       bottom: max(25px, env(safe-area-inset-bottom));
-      right: max(60px, env(safe-area-inset-right));
+      right: max(40px, env(safe-area-inset-right));
       z-index: 30;
       display: flex;
       gap: 8px;
@@ -490,7 +490,9 @@
     }
 
     function handleSpeedingFlashing(speeding) {
+      const limitValEl = document.getElementById('speed-limit');
       const root = document.documentElement;
+
       if (speeding && !isSpeeding) {
         isSpeeding = true;
         flashState = false;
@@ -515,7 +517,7 @@
       }
     }
 
-    // DNA-Spule weiter nach innen verschoben (symmetrisch zur linken Seite)
+    // DNA-Spule perfekt symmetrisch zur linken Seite platziert
     function drawRetroDNAVisualizer() {
       ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
 
@@ -525,7 +527,7 @@
 
       const dnaWidth = 160;
       const dnaHeight = 90;
-      const marginRight = 150; // Weiter von der rechten Kante weggerückt
+      const marginRight = 150;
       const marginTop = 65;
 
       const startX = w - dnaWidth - marginRight;
